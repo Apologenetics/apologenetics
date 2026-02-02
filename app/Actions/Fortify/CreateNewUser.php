@@ -3,37 +3,39 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Services\UserService;
+use App\Validators\FaithValidator;
+use App\Validators\UserValidator;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Throwable;
 
 class CreateNewUser implements CreatesNewUsers
 {
-    use PasswordValidationRules;
-
     /**
      * Validate and create a newly registered user.
      *
-     * @param  array<string, string>  $input
+     * @param array<string, string> $input
+     * @throws Throwable
      */
     public function create(array $input): User
     {
-        Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique(User::class),
-            ],
-            'password' => $this->passwordRules(),
-        ])->validate();
+        if (isset($input['religion_id']) && $input['religion_id'] == 0) {
+            $input['religion_id'] = null;
+        }
 
-        return User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => $input['password'],
+        $rules = array_merge(UserValidator::rules(merge: function ($rules) {
+            return Arr::except($rules, ['faith_id', 'country_code']);
+        }), FaithValidator::rules(merge: function ($rules) {
+            return Arr::except($rules, ['user_id']);
+        }));
+
+        $validated = Validator::make($input, $rules)->validate();
+
+        return UserService::create([
+            'user' => Arr::only($validated, ['name', 'username', 'password', 'email', 'gender']),
+            'faith' => Arr::only($validated, ['religion_id', 'date_converted', 'reason_converted']),
         ]);
     }
 }

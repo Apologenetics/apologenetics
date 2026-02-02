@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, GlobeIcon, BookImage } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -23,6 +23,25 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+    {
+        title: 'Religions',
+        href: '/religions',
+        icon: GlobeIcon,
+        children: [
+            { title: 'Religions', href: '/religions' },
+            { title: 'Create', href: '/religions/create' },
+        ]
+    },
+    {
+        title: 'Doctrines',
+        href: '/doctrines',
+        icon: BookImage,
+        children: [
+            { title: 'Doctrines', href: '/doctrines' },
+            { title: 'Create', href: '/doctrines/create' },
+            { title: 'Correlate', href: '/doctrines/correlate' },
+        ]
+    }
 ];
 
 const footerNavItems: NavItem[] = [
@@ -59,7 +78,7 @@ const footerNavItems: NavItem[] = [
 
         <SidebarFooter>
             <NavFooter :items="footerNavItems" />
-            <NavUser />
+            <NavUser v-if="$page.props.auth?.user" />
         </SidebarFooter>
     </Sidebar>
     <slot />
